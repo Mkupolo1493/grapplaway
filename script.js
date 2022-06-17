@@ -8,7 +8,6 @@
 	window.Events = Matter.Events;
 	window.Body = Matter.Body;
 	window.Constraint = Matter.Constraint;
-	window.Mouse = Matter.Mouse;
 	window.Collision = Matter.Collision;
 }
 
@@ -28,11 +27,21 @@ const renderer = Renderer.create({
 		wireframes: false
 	}
 });
-const mouse = Mouse.create(renderer.canvas);
 
-const playerDensity = 0.0003;
-const wheelDensity = 0.002;
-const playerSpeed = 0.005;
+// settings
+{
+	window.playerDensity = 0.0003;
+	window.wheelDensity = 0.002;
+	window.playerSpeed = 0.005;
+
+	window.playerStiffness = 1;
+	window.showJoints = false;
+	window.jointRenderType = "pin";
+	window.jointStroke = 2;
+	window.jointTargetLength = 0;
+	window.showLigamentAttachments = false;
+}
+
 const player = {
 	leftForeleg: Bodies.rectangle(264, 188, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: playerDensity }),
 	rightForeleg: Bodies.rectangle(336, 188, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: playerDensity }),
@@ -48,12 +57,6 @@ const player = {
 	leftWheel: Bodies.circle(250, 215, 8, { collisionFilter: { group: -2 }, render: { fillStyle: "#bedead00", lineWidth: 1, strokeStyle: "white", sprite: { texture: "./not-creepy-smile.png" } }, density: wheelDensity }),
 	rightWheel: Bodies.circle(350, 215, 8, { collisionFilter: { group: -2 }, render: { fillStyle: "#bedead00", lineWidth: 1, strokeStyle: "white", sprite: { texture: "./not-creepy-smile.png" } }, density: wheelDensity })
 };
-const playerStiffness = 1;
-const showJoints = false;
-const jointRenderType = "pin";
-const jointStroke = 2;
-const jointTargetLength = 0;
-const showLigamentAttachments = false;
 const playerJoints = {
 	leftKnee: Constraint.create({
 		bodyA: player.leftForeleg,
@@ -175,6 +178,139 @@ const playerJoints = {
 		render: { visible: showJoints, lineWidth: jointStroke, type: "line", anchors: showLigamentAttachments }
 	})
 };
+const playerMuscles = {
+	neckStrength: Constraint.create({
+		bodyA: player.head,
+		pointA: {x: 0, y: 0},
+		bodyB: player.upperBody,
+		pointB: {x: 0, y: -20},
+		stiffness: 0.05,
+		length: 40,
+		damping: 0.08,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	crotch: Constraint.create({
+		bodyA: player.leftUpperLeg,
+		pointA: {x: 10, y: 0},
+		bodyB: player.rightUpperLeg,
+		pointB: {x: -10, y: 0},
+		stiffness: 0.05,
+		length: 10,
+		damping: 0.1,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	leftLowerKnee: Constraint.create({
+		bodyA: player.leftForeleg,
+		pointA: {x: 0, y: 0},
+		bodyB: player.leftUpperLeg,
+		pointB: {x: 0, y: 0},
+		stiffness: 0.05,
+		length: 25,
+		damping: 0.1,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	rightLowerKnee: Constraint.create({
+		bodyA: player.rightForeleg,
+		pointA: {x: 0, y: 0},
+		bodyB: player.rightUpperLeg,
+		pointB: {x: 0, y: 0},
+		stiffness: 0.05,
+		length: 25,
+		damping: 0.1,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	leftKneeStrength: Constraint.create({
+		bodyA: player.skateboard,
+		pointA: {x: 0, y: 0},
+		bodyB: player.leftUpperLeg,
+		pointB: {x: -18, y: 0},
+		stiffness: 0.03,
+		length: 40,
+		damping: 0.1,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	rightKneeStrength: Constraint.create({
+		bodyA: player.skateboard,
+		pointA: {x: 0, y: 0},
+		bodyB: player.rightUpperLeg,
+		pointB: {x: 18, y: 0},
+		stiffness: 0.03,
+		length: 40,
+		damping: 0.1,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	leftSpinalSupport: Constraint.create({
+		bodyA: player.head,
+		pointA: {x: 0, y: 0},
+		bodyB: player.leftForeleg,
+		pointB: {x: 0, y: 13},
+		stiffness: 0.05,
+		length: 110,
+		damping: 0.05,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	rightSpinalSupport: Constraint.create({
+		bodyA: player.head,
+		pointA: {x: 0, y: 0},
+		bodyB: player.rightForeleg,
+		pointB: {x: 0, y: 13},
+		stiffness: 0.05,
+		length: 110,
+		damping: 0.05,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	leftArmpit: Constraint.create({
+		bodyA: player.upperBody,
+		pointA: {x: -8, y: -22},
+		bodyB: player.leftUpperArm,
+		pointB: {x: 3, y: 0},
+		stiffness: 0.03,
+		length: 0,
+		damping: 0.05,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	rightArmpit: Constraint.create({
+		bodyA: player.upperBody,
+		pointA: {x: 8, y: -22},
+		bodyB: player.rightUpperArm,
+		pointB: {x: -3, y: 0},
+		stiffness: 0.03,
+		length: 0,
+		damping: 0.05,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	leftLowerElbow: Constraint.create({
+		bodyA: player.leftForearm,
+		pointA: {x: 0, y: 0},
+		bodyB: player.leftUpperArm,
+		pointB: {x: 0, y: 0},
+		stiffness: 0.001,
+		length: 20,
+		damping: 0.05,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	rightLowerElbow: Constraint.create({
+		bodyA: player.rightForearm,
+		pointA: {x: 0, y: 0},
+		bodyB: player.rightUpperArm,
+		pointB: {x: 0, y: 0},
+		stiffness: 0.001,
+		length: 20,
+		damping: 0.05,
+		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
+	}),
+	angleCorrection: Constraint.create({
+		bodyA: player.upperBody,
+		pointA: {x: 0, y: -25},
+		bodyB: player.upperBody,
+		pointB: {x: 0, y: 0},
+		stiffness: 0.005,
+		length: 0,
+		damping: 0.05,
+		render: { visible: showJoints, lineWidth: 1, type: "line", strokeStyle: "red"}
+	})
+};
+
 const ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
 const wall = Bodies.rectangle(-10, 290, 60, 580, { isStatic: true });
 const wall2 = Bodies.rectangle(810, 290, 60, 580, { isStatic: true });
@@ -226,17 +362,6 @@ const raintHalf = new HalfConstraint(
 );
 raintHalf.disable();
 
-const angleCorrection = Constraint.create({
-	bodyA: player.upperBody,
-	pointA: {x: 0, y: -25},
-	bodyB: player.upperBody,
-	pointB: {x: 0, y: 0},
-	stiffness: 0.005,
-	length: 0,
-	damping: 0.05,
-	render: { visible: showJoints, lineWidth: 1, type: "line", strokeStyle: "red"}
-});
-
 window.keys = {
 	right_: false,
 	left_: false,
@@ -264,12 +389,12 @@ function checkPlayerGroundCollision() {
 }
 
 Events.on(engine, "beforeUpdate", function() {
-	angleCorrection.pointB = {x: 0, y: 0};
-	angleCorrection.bodyB = player.upperBody;
-	const converted = Constraint.pointBWorld(angleCorrection);
-	angleCorrection.pointB = {x: converted.x, y: converted.y - 25};
-	angleCorrection.bodyB = null;
-	angleCorrection.stiffness = raintHalf.disabled ? (checkPlayerGroundCollision() ? 0.005 : 0.001) : 0;
+	playerMuscles.angleCorrection.pointB = {x: 0, y: 0};
+	playerMuscles.angleCorrection.bodyB = player.upperBody;
+	const converted = Constraint.pointBWorld(playerMuscles.angleCorrection);
+	playerMuscles.angleCorrection.pointB = {x: converted.x, y: converted.y - 25};
+	playerMuscles.angleCorrection.bodyB = null;
+	playerMuscles.angleCorrection.stiffness = raintHalf.disabled ? (checkPlayerGroundCollision() ? 0.005 : 0.001) : 0;
 	if (keys.right_) {
 		Body.setPosition(redBall, {x: redBall.position.x + 5, y: redBall.position.y});
 	}
@@ -322,7 +447,6 @@ Events.on(engine, "afterUpdate", function() {
 	}
 });
 
-// add all of the bodies to the world
 Composite.add(engine.world, [
 	player.leftForeleg,
 	player.rightForeleg,
@@ -334,6 +458,7 @@ Composite.add(engine.world, [
 	player.leftUpperArm,
 	player.rightUpperArm,
 	player.head,
+	
 	playerJoints.leftKnee,
 	playerJoints.rightKnee,
 	playerJoints.leftHip,
@@ -343,131 +468,25 @@ Composite.add(engine.world, [
 	playerJoints.leftElbow,
 	playerJoints.rightElbow,
 	playerJoints.neck, 
+	
+	playerMuscles.neckStrength,
+	playerMuscles.crotch,
+	playerMuscles.leftLowerKnee,
+	playerMuscles.rightLowerKnee,
+	playerMuscles.leftKneeStrength,
+	playerMuscles.rightKneeStrength,
+	playerMuscles.leftSpinalSupport,
+	playerMuscles.rightSpinalSupport,
+	playerMuscles.leftArmpit,
+	playerMuscles.rightArmpit,
+	playerMuscles.leftLowerElbow,
+	playerMuscles.rightLowerElbow,
+	
 	ground,
 	wall,
 	wall2,
 	ceiling,
-	Constraint.create({ // neck strength
-		bodyA: player.head,
-		pointA: {x: 0, y: 0},
-		bodyB: player.upperBody,
-		pointB: {x: 0, y: -20},
-		stiffness: 0.05,
-		length: 40,
-		damping: 0.08,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	Constraint.create({ // crotch
-		bodyA: player.leftUpperLeg,
-		pointA: {x: 10, y: 0},
-		bodyB: player.rightUpperLeg,
-		pointB: {x: -10, y: 0},
-		stiffness: 0.05,
-		length: 10,
-		damping: 0.1,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	Constraint.create({ // left lower knee
-		bodyA: player.leftForeleg,
-		pointA: {x: 0, y: 0},
-		bodyB: player.leftUpperLeg,
-		pointB: {x: 0, y: 0},
-		stiffness: 0.05,
-		length: 25,
-		damping: 0.1,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	Constraint.create({ // right lower knee
-		bodyA: player.rightForeleg,
-		pointA: {x: 0, y: 0},
-		bodyB: player.rightUpperLeg,
-		pointB: {x: 0, y: 0},
-		stiffness: 0.05,
-		length: 25,
-		damping: 0.1,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	Constraint.create({ // will the real mr stick boi please stand up (part 1)
-		bodyA: player.skateboard,
-		pointA: {x: 0, y: 0},
-		bodyB: player.leftUpperLeg,
-		pointB: {x: -18, y: 0},
-		stiffness: 0.03,
-		length: 40,
-		damping: 0.1,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	Constraint.create({ // will the real mr stick boi please stand up (part 2)
-		bodyA: player.skateboard,
-		pointA: {x: 0, y: 0},
-		bodyB: player.rightUpperLeg,
-		pointB: {x: 18, y: 0},
-		stiffness: 0.03,
-		length: 40,
-		damping: 0.1,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	Constraint.create({ // Will to live, part 1
-		bodyA: player.head,
-		pointA: {x: 0, y: 0},
-		bodyB: player.leftForeleg,
-		pointB: {x: 0, y: 13},
-		stiffness: 0.05,
-		length: 110,
-		damping: 0.05,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	Constraint.create({ // Will to live, part 2
-		bodyA: player.head,
-		pointA: {x: 0, y: 0},
-		bodyB: player.rightForeleg,
-		pointB: {x: 0, y: 13},
-		stiffness: 0.05,
-		length: 110,
-		damping: 0.05,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	Constraint.create({ // Hände hoch (part 1)
-		bodyA: player.upperBody,
-		pointA: {x: -8, y: -22},
-		bodyB: player.leftUpperArm,
-		pointB: {x: 3, y: 0},
-		stiffness: 0.03,
-		length: 0,
-		damping: 0.05,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	Constraint.create({ // Hände hoch (part 2)
-		bodyA: player.upperBody,
-		pointA: {x: 8, y: -22},
-		bodyB: player.rightUpperArm,
-		pointB: {x: -3, y: 0},
-		stiffness: 0.03,
-		length: 0,
-		damping: 0.05,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	Constraint.create({ // Left lower elbow
-		bodyA: player.leftForearm,
-		pointA: {x: 0, y: 0},
-		bodyB: player.leftUpperArm,
-		pointB: {x: 0, y: 0},
-		stiffness: 0.001,
-		length: 20,
-		damping: 0.05,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	Constraint.create({ // Right lower elbow
-		bodyA: player.rightForearm,
-		pointA: {x: 0, y: 0},
-		bodyB: player.rightUpperArm,
-		pointB: {x: 0, y: 0},
-		stiffness: 0.001,
-		length: 20,
-		damping: 0.05,
-		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
-	}),
-	angleCorrection,
+	playerMuscles.angleCorrection,
 	redBall,
 	raintHalf.internalConstraint,
 	player.skateboard,
@@ -479,10 +498,7 @@ Composite.add(engine.world, [
 	playerJoints.axle2
 ]);
 
-// run the renderer
 Renderer.run(renderer);
-
-// create runner
 const runner = Runner.create();
 window.addEventListener("keydown", function(e) {
 	if (window.hasStarted != true && e.key == " ") {
