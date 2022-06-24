@@ -22,9 +22,9 @@ const renderer = Renderer.create({
     element: document.body,
     engine: engine,
 	options: {
-		showCollisions: false,
 		showAngleIndicator: false,
-		wireframes: false
+		wireframes: false,
+		background: "#bedead00"
 	}
 });
 
@@ -32,7 +32,10 @@ const renderer = Renderer.create({
 {
 	window.playerDensity = 0.0003;
 	window.wheelDensity = 0.002;
-	window.playerSpeed = 0.005;
+	window.playerSpeed = 0.6;
+	window.playerAcceleration = 0.01;
+	window.playerColor = "black";
+	window.playerLineWidth = 4;
 
 	window.playerStiffness = 1;
 	window.showJoints = false;
@@ -43,16 +46,16 @@ const renderer = Renderer.create({
 }
 
 const player = {
-	leftForeleg: Bodies.rectangle(264, 188, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: playerDensity }),
-	rightForeleg: Bodies.rectangle(336, 188, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: playerDensity }),
-	leftUpperLeg: Bodies.rectangle(282, 175, 40, 4, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: playerDensity }),
-	rightUpperLeg: Bodies.rectangle(318, 175, 40, 4, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: playerDensity }),
-	upperBody: Bodies.rectangle(300, 147, 4, 60, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: playerDensity }),
-	leftForearm: Bodies.rectangle(272, 135, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: playerDensity }),
-	rightForearm: Bodies.rectangle(328, 135, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: playerDensity }),
-	leftUpperArm: Bodies.rectangle(287, 122, 30, 4, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: playerDensity }),
-	rightUpperArm: Bodies.rectangle(313, 122, 30, 4, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: playerDensity }),
-	head: Bodies.circle(300, 100, 20, { collisionFilter: { group: -1 }, render: { fillStyle: "white" }, density: 0.4 * playerDensity }),
+	leftForeleg: Bodies.rectangle(264, 188, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
+	rightForeleg: Bodies.rectangle(336, 188, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
+	leftUpperLeg: Bodies.rectangle(282, 175, 40, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
+	rightUpperLeg: Bodies.rectangle(318, 175, 40, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
+	upperBody: Bodies.rectangle(300, 147, 4, 60, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
+	leftForearm: Bodies.rectangle(272, 135, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
+	rightForearm: Bodies.rectangle(328, 135, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
+	leftUpperArm: Bodies.rectangle(287, 122, 30, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
+	rightUpperArm: Bodies.rectangle(313, 122, 30, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
+	head: Bodies.circle(300, 100, 20, { collisionFilter: { group: -1 }, render: { fillStyle: "#bedead00", lineWidth: playerLineWidth, strokeStyle: playerColor }, density: 0.4 * playerDensity }),
 	skateboard: Bodies.rectangle(300, 205, 140, 4, { collisionFilter: { group: -2 }, render: { fillStyle: "#ff8833" }, density: playerDensity }),
 	leftWheel: Bodies.circle(250, 215, 8, { collisionFilter: { group: -2 }, render: { fillStyle: "#bedead00", lineWidth: 1, strokeStyle: "white", sprite: { texture: "./not-creepy-smile.png" } }, density: wheelDensity }),
 	rightWheel: Bodies.circle(350, 215, 8, { collisionFilter: { group: -2 }, render: { fillStyle: "#bedead00", lineWidth: 1, strokeStyle: "white", sprite: { texture: "./not-creepy-smile.png" } }, density: wheelDensity })
@@ -171,6 +174,7 @@ const playerJoints = {
 		bodyA: player.skateboard,
 		pointA: {x: 50, y: 15},
 		bodyB: player.rightWheel,
+// 		offsetB: player.axle2Offset,
 		pointB: {x: 0, y: 0},
 		stiffness: 0.1,
 		length: 0,
@@ -264,7 +268,7 @@ const playerMuscles = {
 		pointA: {x: -8, y: -22},
 		bodyB: player.leftUpperArm,
 		pointB: {x: 3, y: 0},
-		stiffness: 0.03,
+		stiffness: 0.05,
 		length: 0,
 		damping: 0.05,
 		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
@@ -274,7 +278,7 @@ const playerMuscles = {
 		pointA: {x: 8, y: -22},
 		bodyB: player.rightUpperArm,
 		pointB: {x: -3, y: 0},
-		stiffness: 0.03,
+		stiffness: 0.05,
 		length: 0,
 		damping: 0.05,
 		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
@@ -284,7 +288,7 @@ const playerMuscles = {
 		pointA: {x: 0, y: 0},
 		bodyB: player.leftUpperArm,
 		pointB: {x: 0, y: 0},
-		stiffness: 0.001,
+		stiffness: 0.005,
 		length: 20,
 		damping: 0.05,
 		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
@@ -294,7 +298,7 @@ const playerMuscles = {
 		pointA: {x: 0, y: 0},
 		bodyB: player.rightUpperArm,
 		pointB: {x: 0, y: 0},
-		stiffness: 0.001,
+		stiffness: 0.005,
 		length: 20,
 		damping: 0.05,
 		render: { visible: showJoints, anchors: false, lineWidth: 1, type: "line", strokeStyle: "green" }
@@ -311,7 +315,7 @@ const playerMuscles = {
 	})
 };
 
-const ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
+const ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true, fillStyle: "#bedead00" });
 const wall = Bodies.rectangle(-10, 290, 60, 580, { isStatic: true });
 const wall2 = Bodies.rectangle(810, 290, 60, 580, { isStatic: true });
 const ceiling = Bodies.rectangle(400, -10, 810, 60, { isStatic: true });
@@ -408,42 +412,39 @@ Events.on(engine, "beforeUpdate", function() {
 		Body.setPosition(redBall, {x: redBall.position.x, y: redBall.position.y + 5});
 	}
 });
+
+let jumpData = {
+	canDoubleJump: false,
+	jumpFrame: 0,
+	// constants
+	startSpeed: -6,
+	gravCoefficient: 0.1,
+	maxJumpFrames: 20
+};
+
 Events.on(engine, "afterUpdate", function() {
-	if (keys.jump && (Collision.collides(player.leftWheel, ground) || Collision.collides(player.rightWheel, ground))) {
-		/*player.leftForeleg.position.y -= 3;
-		player.rightForeleg.position.y -= 3;
-		player.leftUpperLeg.position.y -= 3;
-		player.rightUpperLeg.position.y -= 3;
-		player.upperBody.position.y -= 3;
-		player.leftForearm.position.y -= 3;
-		player.rightForearm.position.y -= 3;
-		player.leftUpperArm.position.y -= 3;
-		player.rightUpperArm.position.y -= 3;
-		player.head.position.y -= 3;
-		player.skateboard.position.y -= 3;
-		player.leftWheel.position.y -= 3;
-		player.rightWheel.position.y -= 3;*/
-		Body.setVelocity(player.leftForeleg, {x: player.leftForeleg.velocity.x, y: -10});
-		Body.setVelocity(player.rightForeleg, {x: player.rightForeleg.velocity.x, y: -10});
-		Body.setVelocity(player.leftUpperLeg, {x: player.leftUpperLeg.velocity.x, y: -10});
-		Body.setVelocity(player.rightUpperLeg, {x: player.rightUpperLeg.velocity.x, y: -10});
-		Body.setVelocity(player.upperBody, {x: player.upperBody.velocity.x, y: -10});
-		Body.setVelocity(player.leftForearm, {x: player.leftForearm.velocity.x, y: -10});
-		Body.setVelocity(player.rightForearm, {x: player.rightForearm.velocity.x, y: -10});
-		Body.setVelocity(player.leftUpperArm, {x: player.leftUpperArm.velocity.x, y: -10});
-		Body.setVelocity(player.rightUpperArm, {x: player.rightUpperArm.velocity.x, y: -10});
-		Body.setVelocity(player.head, {x: player.head.velocity.x, y: -10});
-		Body.setVelocity(player.skateboard, {x: player.skateboard.velocity.x, y: -10});
-		Body.setVelocity(player.leftWheel, {x: player.leftWheel.velocity.x, y: -10});
-		Body.setVelocity(player.rightWheel, {x: player.rightWheel.velocity.x, y: -10});
+	const isColliding = Collision.collides(player.leftWheel, ground) || Collision.collides(player.rightWheel, ground);
+	if (keys.jump && (isColliding || (jumpData.jumpFrame > 0 && jumpData.jumpFrame < jumpData.maxJumpFrames))) {
+		if (isColliding) jumpData.jumpFrame = 0;
+		Body.setVelocity(player.upperBody, {x: player.upperBody.velocity.x, y: jumpData.startSpeed + jumpData.jumpFrame * jumpData.gravCoefficient});
+		Body.setVelocity(player.leftUpperArm, {x: player.leftUpperArm.velocity.x, y: jumpData.startSpeed + jumpData.jumpFrame * jumpData.gravCoefficient});
+		Body.setVelocity(player.rightUpperArm, {x: player.rightUpperArm.velocity.x, y: jumpData.startSpeed + jumpData.jumpFrame * jumpData.gravCoefficient});
+		Body.setVelocity(player.head, {x: player.head.velocity.x, y: jumpData.startSpeed + jumpData.jumpFrame * jumpData.gravCoefficient});
+		Body.setVelocity(player.skateboard, {x: player.skateboard.velocity.x, y: jumpData.startSpeed + jumpData.jumpFrame * jumpData.gravCoefficient});
+		Body.setVelocity(player.leftWheel, {x: player.leftWheel.velocity.x, y: jumpData.startSpeed + jumpData.jumpFrame * jumpData.gravCoefficient});
+		Body.setVelocity(player.rightWheel, {x: player.rightWheel.velocity.x, y: jumpData.startSpeed + jumpData.jumpFrame * jumpData.gravCoefficient});
+		jumpData.jumpFrame++;
+	}
+	else {
+		jumpData.jumpFrame = 0;
 	}
 	if (keys.left) {
-		player.leftWheel.torque = -playerSpeed;
-		player.rightWheel.torque = -playerSpeed;
+		if (player.leftWheel.angularVelocity > -playerSpeed) player.leftWheel.torque = -playerAcceleration;
+		if (player.rightWheel.angularVelocity > -playerSpeed) player.rightWheel.torque = -playerAcceleration;
 	}
 	if (keys.right) {
-		player.leftWheel.torque = playerSpeed;
-		player.rightWheel.torque = playerSpeed;
+		if (player.leftWheel.angularVelocity < playerSpeed) player.leftWheel.torque = playerAcceleration;
+		if (player.rightWheel.angularVelocity < playerSpeed) player.rightWheel.torque = playerAcceleration;
 	}
 });
 
@@ -536,3 +537,9 @@ window.addEventListener("keyup", function(e) {
 		keys.jump = false;
 	}
 });
+
+
+/* when time allows, fix these low-priority bugs:
+	• (U+2022) unshifting then pressing shift again causes grapple to slide
+	• use rotation of upper body instead of ugly-ass constraint
+*/
