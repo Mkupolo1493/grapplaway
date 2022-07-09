@@ -5,11 +5,11 @@ window.loadImage = function(url) {
 }
 window.gridBG = document.createElement("canvas");
 const squareImages = [
-	loadImage("grid-bg.png"),
-	loadImage("grid-bg2.png"),
-	loadImage("grid-bg3.png"),
-	loadImage("grid-bg4.png"),
-	loadImage("grid-bg5.png")
+	loadImage("/assets/img/bg/grid-tile1.png"),
+	loadImage("/assets/img/bg/grid-tile2.png"),
+	loadImage("/assets/img/bg/grid-tile3.png"),
+	loadImage("/assets/img/bg/grid-tile4.png"),
+	loadImage("/assets/img/bg/grid-tile5.png")
 ];
 gridBG.width = 1600;
 gridBG.height = 900;
@@ -31,11 +31,10 @@ window.dispatchEvent(new Event('resize'));
 gridBG.className = "bg";
 document.body.appendChild(gridBG);
 window.gbgCtx = gridBG.getContext("2d");
-gbgCtx.fillStyle = "#696969";
+gbgCtx.fillStyle = "#cde";
 gbgCtx.fillRect(0, 0, 1600, 900);
-gbgCtx.filter = "brightness(150%)";
 window.onload = ()=>{for (let i = 0; i < 50; i++) {
 	for (let j = 0; j < 29; j++) {
-		gbgCtx.drawImage(squareImages[Math.floor(Math.random() * 5)], 32 * i, 32 * j, 32, 32);
+		gbgCtx.drawImage(squareImages[Math.floor(Math.random() * squareImages.length)], 32 * i, 32 * j, 32, 32);
 	}
 }}

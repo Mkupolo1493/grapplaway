@@ -31,6 +31,8 @@ const renderer = Renderer.create({
 // settings
 {
 	window.playerDensity = 0.0003;
+	window.playerDisjointDensity = 0.00000069;
+	window.playerDisjointStiffness = 1;
 	window.wheelDensity = 0.002;
 	window.playerSpeed = 0.6;
 	window.playerAcceleration = 0.01;
@@ -46,19 +48,21 @@ const renderer = Renderer.create({
 }
 
 const player = {
-	leftForeleg: Bodies.rectangle(264, 188, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
-	rightForeleg: Bodies.rectangle(336, 188, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
-	leftUpperLeg: Bodies.rectangle(282, 175, 40, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
-	rightUpperLeg: Bodies.rectangle(318, 175, 40, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
-	upperBody: Bodies.rectangle(300, 147, 4, 60, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
-	leftForearm: Bodies.rectangle(272, 135, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
-	rightForearm: Bodies.rectangle(328, 135, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
-	leftUpperArm: Bodies.rectangle(287, 122, 30, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
-	rightUpperArm: Bodies.rectangle(313, 122, 30, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity }),
-	head: Bodies.circle(300, 100, 20, { collisionFilter: { group: -1 }, render: { fillStyle: "#bedead00", lineWidth: playerLineWidth, strokeStyle: playerColor }, density: 0.4 * playerDensity }),
-	skateboard: Bodies.rectangle(300, 205, 140, 4, { collisionFilter: { group: -2 }, render: { fillStyle: "#ff8833" }, density: playerDensity }),
-	leftWheel: Bodies.circle(250, 215, 8, { collisionFilter: { group: -2 }, render: { fillStyle: "#bedead00", lineWidth: 1, strokeStyle: "white", sprite: { texture: "./not-creepy-smile.png" } }, density: wheelDensity }),
-	rightWheel: Bodies.circle(350, 215, 8, { collisionFilter: { group: -2 }, render: { fillStyle: "#bedead00", lineWidth: 1, strokeStyle: "white", sprite: { texture: "./not-creepy-smile.png" } }, density: wheelDensity })
+	leftForeleg: Bodies.rectangle(264, 188, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity, frictionAir: 0 }),
+	rightForeleg: Bodies.rectangle(336, 188, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity, frictionAir: 0 }),
+	leftUpperLeg: Bodies.rectangle(282, 175, 40, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity, frictionAir: 0 }),
+	rightUpperLeg: Bodies.rectangle(318, 175, 40, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity, frictionAir: 0 }),
+	upperBody: Bodies.rectangle(300, 147, 4, 60, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity, frictionAir: 0 }),
+	leftForearm: Bodies.rectangle(272, 135, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity, frictionAir: 0 }),
+	rightForearm: Bodies.rectangle(328, 135, 4, 30, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity, frictionAir: 0 }),
+	leftUpperArm: Bodies.rectangle(287, 122, 30, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity, frictionAir: 0 }),
+	rightUpperArm: Bodies.rectangle(313, 122, 30, 4, { collisionFilter: { group: -1 }, render: { fillStyle: playerColor }, density: playerDensity, frictionAir: 0 }),
+	head: Bodies.circle(300, 100, 20, { collisionFilter: { group: -1 }, render: { fillStyle: "#bedead00", lineWidth: playerLineWidth, strokeStyle: playerColor }, density: 0.4 * playerDensity, frictionAir: 0 }),
+	skateboard: Bodies.rectangle(300, 205, 140, 4, { collisionFilter: { group: -1 }, render: { fillStyle: "#ff8833" }, density: playerDensity, frictionAir: 0 }),
+	leftWheel: Bodies.circle(250, 215, 8, { collisionFilter: { group: -1 }, render: { fillStyle: "#bedead00", lineWidth: 1, strokeStyle: "white", sprite: { texture: "./not-creepy-smile.png" } }, density: wheelDensity, frictionAir: 0 }),
+	rightWheel: Bodies.circle(350, 215, 8, { collisionFilter: { group: -1 }, render: { fillStyle: "#bedead00", lineWidth: 1, strokeStyle: "white", sprite: { texture: "./not-creepy-smile.png" } }, density: wheelDensity, frictionAir: 0 }),
+	grappleDisjoint: Bodies.circle(328, 148, 3, { collisionFilter: { group: -1 } , render: { 
+fillStyle: "#291" }, density: playerDisjointDensity, frictionAir: 0 })
 };
 const playerJoints = {
 	leftKnee: Constraint.create({
@@ -174,12 +178,19 @@ const playerJoints = {
 		bodyA: player.skateboard,
 		pointA: {x: 50, y: 15},
 		bodyB: player.rightWheel,
-// 		offsetB: player.axle2Offset,
 		pointB: {x: 0, y: 0},
 		stiffness: 0.1,
 		length: 0,
 		damping: 0.2,
 		render: { visible: showJoints, lineWidth: jointStroke, type: "line", anchors: showLigamentAttachments }
+	}),
+	disjointConnector: Constraint.create({
+		bodyA: player.leftForearm,
+		pointA: {x: 0, y: 13},
+		pointB: {x: 328, y: 148},
+		stiffness: playerDisjointStiffness,
+		length: 0,
+		render: { visible: /*showJoints*/true, lineWidth: jointStroke, type: "pin", anchors: false }
 	})
 };
 const playerMuscles = {
@@ -317,7 +328,7 @@ const playerMuscles = {
 
 const ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true, fillStyle: "#bedead00" });
 const wall = Bodies.rectangle(-10, 290, 60, 580, { isStatic: true });
-const wall2 = Bodies.rectangle(810, 290, 60, 580, { isStatic: true });
+const wall2 = Bodies.rectangle(810, 290, 60, 580, { isStatic: true, isSensor: true });
 const ceiling = Bodies.rectangle(400, -10, 810, 60, { isStatic: true });
 
 const redBall = Bodies.circle(600, 50, 15, { render: { fillStyle: "red" }, isStatic: true, isSensor: true });
@@ -350,7 +361,7 @@ class HalfConstraint {
 		this.internalConstraint.render.visible = false;
 	}
 	enable() {
-		this.internalConstraint.length = Math.sqrt((Constraint.pointAWorld(this.internalConstraint).x - Constraint.pointBWorld(this.internalConstraint).x) ** 2 + (Constraint.pointAWorld(this.internalConstraint).y - Constraint.pointBWorld(this.internalConstraint).y) ** 2);
+		if (this.disabled) this.internalConstraint.length = Math.sqrt((Constraint.pointAWorld(this.internalConstraint).x - Constraint.pointBWorld(this.internalConstraint).x) ** 2 + (Constraint.pointAWorld(this.internalConstraint).y - Constraint.pointBWorld(this.internalConstraint).y) ** 2);
 		this.disabled = false;
 		this.internalConstraint.render.visible = this.render;
 	}
@@ -360,8 +371,10 @@ const raintHalf = new HalfConstraint(
 	true,
 	redBall,
 	{x: 0, y: 0},
-	player.leftForearm,
-	{x: 0, y: 13},
+	/*player.leftForearm,
+	{x: 0, y: 13},*/
+	player.grappleDisjoint,
+	{x: 0, y: 0},
 	true
 );
 raintHalf.disable();
@@ -393,12 +406,13 @@ function checkPlayerGroundCollision() {
 }
 
 Events.on(engine, "beforeUpdate", function() {
+	// playerJoints.disjointConnector.pointB = player.grappleDisjoint.position;
 	playerMuscles.angleCorrection.pointB = {x: 0, y: 0};
 	playerMuscles.angleCorrection.bodyB = player.upperBody;
 	const converted = Constraint.pointBWorld(playerMuscles.angleCorrection);
 	playerMuscles.angleCorrection.pointB = {x: converted.x, y: converted.y - 25};
 	playerMuscles.angleCorrection.bodyB = null;
-	playerMuscles.angleCorrection.stiffness = raintHalf.disabled ? (checkPlayerGroundCollision() ? 0.005 : 0.001) : 0;
+	playerMuscles.angleCorrection.stiffness = /*raintHalf.disabled*/false ? (checkPlayerGroundCollision() ? 0.005 : 0.001) : 0;
 	if (keys.right_) {
 		Body.setPosition(redBall, {x: redBall.position.x + 5, y: redBall.position.y});
 	}
@@ -423,7 +437,10 @@ let jumpData = {
 };
 
 Events.on(engine, "afterUpdate", function() {
-	const isColliding = Collision.collides(player.leftWheel, ground) || Collision.collides(player.rightWheel, ground);
+	playerJoints.disjointConnector.pointB = player.grappleDisjoint.position;
+	/*if (raintHalf.disabled) playerJoints.disjointConnector.stiffness = Number.EPSILON;
+	else playerJoints.disjointConnector.stiffness = playerDisjointStiffness;*/
+	const isColliding = Collision.collides(player.leftWheel, ground) || Collision.collides(player.rightWheel, ground) || Collision.collides(player.skateboard, ground);
 	if (keys.jump && (isColliding || (jumpData.jumpFrame > 0 && jumpData.jumpFrame < jumpData.maxJumpFrames))) {
 		if (isColliding) jumpData.jumpFrame = 0;
 		Body.setVelocity(player.upperBody, {x: player.upperBody.velocity.x, y: jumpData.startSpeed + jumpData.jumpFrame * jumpData.gravCoefficient});
@@ -444,8 +461,12 @@ Events.on(engine, "afterUpdate", function() {
 	}
 	if (keys.right) {
 		if (player.leftWheel.angularVelocity < playerSpeed) player.leftWheel.torque = playerAcceleration;
-		if (player.rightWheel.angularVelocity < playerSpeed) player.rightWheel.torque = playerAcceleration;
+		if (player.rightWheel.angularVelocity < playerSpeed) player.rightWheel.torque = playerAcceleration; 
 	}
+	Renderer.lookAt(renderer, player.head, {
+	  x: 800,
+	  y: 450
+	});
 });
 
 Composite.add(engine.world, [
@@ -459,6 +480,7 @@ Composite.add(engine.world, [
 	player.leftUpperArm,
 	player.rightUpperArm,
 	player.head,
+	player.grappleDisjoint,
 	
 	playerJoints.leftKnee,
 	playerJoints.rightKnee,
@@ -496,16 +518,18 @@ Composite.add(engine.world, [
 	player.leftWheel,
 	player.rightWheel,
 	playerJoints.axle1,
-	playerJoints.axle2
+	playerJoints.axle2,
+	playerJoints.disjointConnector
 ]);
 
 Renderer.run(renderer);
 const runner = Runner.create();
+Runner.run(runner, engine);
 window.addEventListener("keydown", function(e) {
-	if (window.hasStarted != true && e.key == " ") {
-		Runner.run(runner, engine);
-		window.hasStarted = true;
-	}
+	// if (window.hasStarted != true && e.key == " ") {
+	// 	Runner.run(runner, engine);
+	// 	window.hasStarted = true;
+	// }
 	if (e.key == "l" || e.key == "L") keys.right_ = true;
 	if (e.key == "j" || e.key == "J") keys.left_ = true;
 	if (e.key == "i" || e.key == "I") keys.up_ = true;
@@ -540,6 +564,7 @@ window.addEventListener("keyup", function(e) {
 
 
 /* when time allows, fix these low-priority bugs:
-	• (U+2022) unshifting then pressing shift again causes grapple to slide
+	Done: • (U+2022) unshifting then pressing shift again causes grapple to slide
 	• use rotation of upper body instead of ugly-ass constraint
+	• fix knee and axle inversion
 */
